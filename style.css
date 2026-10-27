@@ -345,27 +345,34 @@ a { color: inherit; }
 
 
 /* -------------------------------------------------------------------------- */
-/* STAGE (contour field)                                                      */
+/* LANDING: method diagram behind the intro box                               */
 /* -------------------------------------------------------------------------- */
 
 .stage {
   position: relative;
   height: 100vh;
   height: 100dvh;
-  min-height: 520px;
+  min-height: 640px;
   overflow: hidden;
   border-bottom: 1px solid var(--border);
-  background: radial-gradient(circle at 50% 35%, #111111 0%, #050505 55%, #000000 100%);
+  background: radial-gradient(circle at 60% 40%, #111111 0%, #050505 55%, #000000 100%);
 }
 
-.stage-canvas {
+/* the diagram's own transparent margin is generous, so it may overflow a bit */
+.stage-diagram {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 100%;
-  display: block;
-  cursor: crosshair;
+  max-width: none;
+  height: auto;
+  opacity: 0.92;
+  pointer-events: none;
+  user-select: none;
+  transition: opacity 200ms ease;
 }
+
+
 
 .stage-overlay {
   position: absolute;
@@ -377,11 +384,12 @@ a { color: inherit; }
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  pointer-events: none;
 }
 
-.viewer-status,
-.viewer-help {
+.viewer-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 8px 10px;
   border: 1px solid var(--border);
   color: var(--muted);
@@ -391,12 +399,8 @@ a { color: inherit; }
   text-transform: uppercase;
 }
 
-.viewer-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-variant-numeric: tabular-nums;
-}
+.status-link { color: inherit; text-underline-offset: 2px; }
+.status-link:hover { color: var(--text); }
 
 .status-dot {
   width: 8px;
@@ -411,15 +415,22 @@ a { color: inherit; }
   position: absolute;
   z-index: 10;
   left: 16px;
-  bottom: 72px;
-  width: min(560px, calc(100% - 32px));
-  padding: 18px;
+  right: 16px;
+  bottom: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 28px;
+  align-items: end;
+  padding: 20px 22px;
   border: 1px solid var(--border-light);
-  background: rgba(0, 0, 0, 0.86);
+  background: rgba(0, 0, 0, 0.88);
 }
 
+.stage-intro-text > :last-child,
+.stage-intro-tool > :last-child { margin-bottom: 0; }
+
 .stage-kicker {
-  margin: 0 0 10px;
+  margin: 0 0 12px;
   color: var(--muted);
   font-size: 9px;
   font-weight: 700;
@@ -427,11 +438,28 @@ a { color: inherit; }
   text-transform: uppercase;
 }
 
+.stage-title {
+  margin: 0 0 12px;
+  color: var(--accent-strong);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
 .stage-lede {
-  margin: 0;
+  margin: 0 0 10px;
   color: var(--text);
   font-size: 13px;
   line-height: 1.6;
+}
+
+.stage-text {
+  margin: 0 0 10px;
+  color: #bdbdbd;
+  font-size: 11.5px;
+  line-height: 1.65;
 }
 
 .stage-toolbar {
@@ -439,7 +467,7 @@ a { color: inherit; }
   width: 100%;
   max-width: 869px;
   height: auto;
-  margin: 14px 0;
+  margin: 4px 0 16px;
   border: 1px solid var(--border);
 }
 
@@ -460,50 +488,6 @@ a { color: inherit; }
   color: var(--black);
   background: #dcdcdc;
 }
-
-.stage-note {
-  margin: 14px 0 0;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 10.5px;
-  line-height: 1.55;
-}
-
-.viewer-toolbar {
-  position: absolute;
-  z-index: 10;
-  left: 16px;
-  bottom: 16px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px;
-  border: 1px solid var(--border);
-  background: rgba(0, 0, 0, 0.72);
-}
-
-.toolbar-label {
-  padding: 0 6px 0 4px;
-  color: var(--muted);
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.icon-only {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 31px;
-  height: 31px;
-  padding: 0;
-  border: 0;
-  color: #dddddd;
-  background: transparent;
-}
-
-.icon-only:hover { color: #ffffff; background: #1b1b1b; }
 
 
 /* -------------------------------------------------------------------------- */
@@ -1444,6 +1428,10 @@ a { color: inherit; }
 /* RESPONSIVE                                                                 */
 /* -------------------------------------------------------------------------- */
 
+@media (max-width: 1180px) and (min-width: 861px) {
+  .stage-intro { grid-template-columns: 1fr; gap: 6px; }
+}
+
 @media (max-width: 1100px) {
   .cycle { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .cycle li:nth-child(5) { border-left: 0; }
@@ -1508,10 +1496,16 @@ a { color: inherit; }
 
   .search, .search input { width: 100%; }
 
-  .viewer-help { display: none; }
-  .stage { height: auto; min-height: 0; padding: 60px 16px 72px; }
-  .stage-canvas { position: absolute; }
-  .stage-intro { position: relative; left: auto; bottom: auto; width: 100%; }
+  .stage { height: auto; min-height: 0; padding: 56px 16px 16px; }
+  .stage-diagram {
+    position: relative;
+    top: auto; left: auto;
+    /* crop the transparent margin: drawn area is 8.8–95.8 % wide, 11.3–89.8 % high */
+    width: 115%;
+    margin: -7.3% 0 -6.6% -10.1%;
+    transform: none;
+  }
+  .stage-intro { position: relative; left: auto; right: auto; bottom: auto; width: 100%; grid-template-columns: 1fr; gap: 6px; }
   .stage-lede { font-size: 12px; }
 }
 

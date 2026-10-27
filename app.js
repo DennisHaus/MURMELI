@@ -10,7 +10,7 @@
   7  citation
   8  dialogs (Read Me, lightbox)
   9  contents panel + scroll position
-  10 terrain stage: generated contours with a water-flow trace
+  10 landing: method diagram fitted around the intro box
 */
 
 (() => {
@@ -415,295 +415,68 @@
   updateCurrent();
 
 
-  /* 10 TERRAIN STAGE ------------------------------------------------------ */
+
+  /* 10 LANDING: method diagram above the intro box ---------------------- */
   /*
-     A procedural height field drawn as contour lines (marching squares).
-     Hovering traces the steepest-descent path, the same idea as the
-     plug-in's Water Flow Lines component.
+     The diagram fills the width of the stage; the intro box runs along the
+     bottom. The diagram is scaled so its labels stay clear of the box. If
+     the screen is short, the stage grows taller than the window instead of
+     shrinking the drawing until it can't be read.
   */
 
-  const canvas = $("#terrainCanvas");
-  const ctx = canvas.getContext("2d");
-  const status = $("#stageStatus");
-  const base = document.createElement("canvas");
-  const bctx = base.getContext("2d");
+  const stage = $("#intro");
+  const diagram = $(".stage-diagram");
+  const introBox = $(".stage-intro");
+  const narrow = window.matchMedia("(max-width: 860px)");
 
-  const CELL = 5;               // CSS px per grid cell
-  const Z_MIN = 420;            // m, valley floor
-  const Z_MAX = 980;            // m, ridge
+  // drawn area of the image, as fractions (measured from the PNG)
+  const D = { x0: 0.088, x1: 0.958, y0: 0.113, y1: 0.898 };
+  const RATIO = 1280 / 2274;
+  const PAD = 16, TOP = 56, GAP = 18, MAX_W = 1700;
 
-  let interval = 10;
-  let seed = 7;
-  let W = 0, H = 0, DPR = 1, cols = 0, rows = 0;
-  let field = null;             // Float32Array of elevations in m
-  let pointer = null;
-
-  // seeded random + value noise
-  function mulberry32(a) {
-    return () => {
-      a |= 0; a = (a + 0x6d2b79f5) | 0;
-      let t = Math.imul(a ^ (a >>> 15), 1 | a);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-
-  function makeNoise(rand) {
-    const N = 256;
-    const perm = new Uint8Array(N * 2);
-    const vals = new Float32Array(N);
-    for (let i = 0; i < N; i++) { perm[i] = i; vals[i] = rand(); }
-    for (let i = N - 1; i > 0; i--) {
-      const j = Math.floor(rand() * (i + 1));
-      [perm[i], perm[j]] = [perm[j], perm[i]];
+  function layoutDiagram() {
+    if (narrow.matches) {
+      diagram.removeAttribute("style");
+      stage.style.removeProperty("min-height");
+      return;
     }
-    for (let i = 0; i < N; i++) perm[N + i] = perm[i];
-    const smooth = (t) => t * t * (3 - 2 * t);
-    const v = (x, y) => vals[perm[(perm[x & 255] + y) & 511] & 255];
-    return (x, y) => {
-      const xi = Math.floor(x), yi = Math.floor(y);
-      const xf = smooth(x - xi), yf = smooth(y - yi);
-      const a = v(xi, yi), b = v(xi + 1, yi), c = v(xi, yi + 1), d = v(xi + 1, yi + 1);
-      return a + (b - a) * xf + (c - a) * yf + (a - b - c + d) * xf * yf;
-    };
+    stage.style.removeProperty("min-height");
+    const W = stage.clientWidth;
+    const viewH = scroller.clientHeight || window.innerHeight;
+    const bh = introBox.getBoundingClientRect().height;
+
+    const drawnW = D.x1 - D.x0;
+    const drawnH = (D.y1 - D.y0) * RATIO;
+
+    const fullW = Math.min((W - 2 * PAD) / drawnW, MAX_W);
+    const fitH = (viewH - TOP - PAD - GAP - bh) / drawnH;
+    // shrink to fit one screen, but never below 80 % of the full width
+    const iw = Math.max(Math.min(fullW, fitH), fullW * 0.8);
+    const ih = iw * RATIO;
+
+    const contentH = drawnH * iw;
+    const stageH = Math.max(viewH, TOP + contentH + GAP + bh + PAD);
+    stage.style.minHeight = `${Math.ceil(stageH)}px`;
+
+    const areaTop = TOP;
+    const areaBottom = stageH - PAD - bh - GAP;
+    const top = areaTop + (areaBottom - areaTop - contentH) / 2 - D.y0 * ih;
+    const left = (W - drawnW * iw) / 2 - D.x0 * iw;
+
+    diagram.style.width = `${iw}px`;
+    diagram.style.left = `${left}px`;
+    diagram.style.top = `${top}px`;
   }
 
-  function buildField() {
-    const rand = mulberry32(seed);
-    const noise = makeNoise(rand);
+  let layoutTimer;
+  const scheduleLayout = () => {
+    clearTimeout(layoutTimer);
+    layoutTimer = setTimeout(layoutDiagram, 60);
+  };
 
-    // a few massifs and a meandering valley
-    const hills = Array.from({ length: 5 }, () => ({
-      x: rand(), y: rand(), r: 0.18 + rand() * 0.25, h: 0.45 + rand() * 0.55
-    }));
-    const valleyPhase = rand() * Math.PI * 2;
-    const valleyY = 0.35 + rand() * 0.3;
-
-    cols = Math.ceil(W / CELL) + 1;
-    rows = Math.ceil(H / CELL) + 1;
-    field = new Float32Array(cols * rows);
-
-    const aspect = W / H;
-
-    for (let j = 0; j < rows; j++) {
-      for (let i = 0; i < cols; i++) {
-        const u = i / (cols - 1);
-        const v = j / (rows - 1);
-
-        let h = 0;
-        for (const k of hills) {
-          const dx = (u - k.x) * aspect, dy = v - k.y;
-          h += k.h * Math.exp(-(dx * dx + dy * dy) / (k.r * k.r));
-        }
-
-        // fractal noise
-        let amp = 0.5, freq = 3, n = 0;
-        for (let o = 0; o < 5; o++) {
-          n += amp * noise(u * freq * aspect + 11.3, v * freq + 4.7);
-          amp *= 0.5; freq *= 2.03;
-        }
-        h += (n - 0.5) * 0.55;
-
-        // carve a river valley
-        const centre = valleyY + 0.12 * Math.sin(u * 7 + valleyPhase) + 0.05 * Math.sin(u * 17);
-        const d = Math.abs(v - centre);
-        h -= 0.55 * Math.exp(-(d * d) / 0.006);
-
-        field[j * cols + i] = h;
-      }
-    }
-
-    // normalise to metres
-    let lo = Infinity, hi = -Infinity;
-    for (const z of field) { if (z < lo) lo = z; if (z > hi) hi = z; }
-    for (let k = 0; k < field.length; k++) {
-      field[k] = Z_MIN + ((field[k] - lo) / (hi - lo)) * (Z_MAX - Z_MIN);
-    }
-  }
-
-  function zAt(x, y) {
-    const gx = Math.min(Math.max(x / CELL, 0), cols - 1.001);
-    const gy = Math.min(Math.max(y / CELL, 0), rows - 1.001);
-    const i = Math.floor(gx), j = Math.floor(gy);
-    const fx = gx - i, fy = gy - j;
-    const a = field[j * cols + i], b = field[j * cols + i + 1];
-    const c = field[(j + 1) * cols + i], d = field[(j + 1) * cols + i + 1];
-    return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
-  }
-
-  function drawContours() {
-    base.width = W * DPR;
-    base.height = H * DPR;
-    bctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    bctx.clearRect(0, 0, W, H);
-    bctx.lineCap = "round";
-
-    const first = Math.ceil(Z_MIN / interval) * interval;
-    const majorEvery = interval === 25 ? 100 : interval * 5;
-
-    // collect segments per level into paths
-    const minor = new Path2D();
-    const major = new Path2D();
-
-    for (let j = 0; j < rows - 1; j++) {
-      for (let i = 0; i < cols - 1; i++) {
-        const a = field[j * cols + i];
-        const b = field[j * cols + i + 1];
-        const c = field[(j + 1) * cols + i + 1];
-        const d = field[(j + 1) * cols + i];
-        const lo = Math.min(a, b, c, d), hi = Math.max(a, b, c, d);
-        const x0 = i * CELL, y0 = j * CELL;
-
-        let level = Math.ceil(lo / interval) * interval;
-        if (level < first) level = first;
-
-        for (; level <= hi; level += interval) {
-          const pts = [];
-          const edge = (za, zb, xa, ya, xb, yb) => {
-            if ((za < level) !== (zb < level)) {
-              const t = (level - za) / (zb - za);
-              pts.push(xa + (xb - xa) * t, ya + (yb - ya) * t);
-            }
-          };
-          edge(a, b, x0, y0, x0 + CELL, y0);
-          edge(b, c, x0 + CELL, y0, x0 + CELL, y0 + CELL);
-          edge(c, d, x0 + CELL, y0 + CELL, x0, y0 + CELL);
-          edge(d, a, x0, y0 + CELL, x0, y0);
-
-          const p = level % majorEvery === 0 ? major : minor;
-          for (let k = 0; k + 3 < pts.length; k += 4) {
-            p.moveTo(pts[k], pts[k + 1]);
-            p.lineTo(pts[k + 2], pts[k + 3]);
-          }
-        }
-      }
-    }
-
-    bctx.strokeStyle = "rgba(238, 238, 238, 0.26)";
-    bctx.lineWidth = 0.7;
-    bctx.stroke(minor);
-
-    bctx.strokeStyle = "rgba(255, 255, 255, 0.62)";
-    bctx.lineWidth = 1.1;
-    bctx.stroke(major);
-  }
-
-  function traceFlow(x, y) {
-    const path = [[x, y]];
-    const STEP = 2;
-    const EPS = 1.5;
-    let px = x, py = y;
-    for (let n = 0; n < 1500; n++) {
-      const gx = (zAt(px + EPS, py) - zAt(px - EPS, py)) / (2 * EPS);
-      const gy = (zAt(px, py + EPS) - zAt(px, py - EPS)) / (2 * EPS);
-      const g = Math.hypot(gx, gy);
-      if (g < 1e-4) break;
-      px -= (gx / g) * STEP;
-      py -= (gy / g) * STEP;
-      if (px < 0 || py < 0 || px > W || py > H) break;
-      path.push([px, py]);
-      // stop in a pit: no further descent over the last steps
-      if (n > 30) {
-        const [qx, qy] = path[path.length - 30];
-        if (Math.hypot(px - qx, py - qy) < 6) break;
-      }
-    }
-    return path;
-  }
-
-  function render() {
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(base, 0, 0);
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-
-    if (!pointer) return;
-
-    const path = traceFlow(pointer.x, pointer.y);
-    if (path.length > 1) {
-      ctx.beginPath();
-      ctx.moveTo(path[0][0], path[0][1]);
-      for (const [x, y] of path) ctx.lineTo(x, y);
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 2;
-      ctx.lineJoin = "round";
-      ctx.stroke();
-
-      const [ex, ey] = path[path.length - 1];
-      ctx.beginPath();
-      ctx.arc(ex, ey, 3.5, 0, Math.PI * 2);
-      ctx.fillStyle = "#ffffff";
-      ctx.fill();
-    }
-
-    // crosshair
-    ctx.strokeStyle = "rgba(255,255,255,0.9)";
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(pointer.x - 9, pointer.y); ctx.lineTo(pointer.x + 9, pointer.y);
-    ctx.moveTo(pointer.x, pointer.y - 9); ctx.lineTo(pointer.x, pointer.y + 9);
-    ctx.stroke();
-
-    const zStart = zAt(pointer.x, pointer.y);
-    const last = path[path.length - 1];
-    const zEnd = zAt(last[0], last[1]);
-    status.textContent =
-      `Sketch · z ${fmtNum(zStart, 1)} m · flow drop ${fmtNum(zStart - zEnd, 1)} m`;
-  }
-
-  function resize() {
-    const rect = canvas.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
-    DPR = Math.min(window.devicePixelRatio || 1, 2);
-    W = rect.width;
-    H = rect.height;
-    canvas.width = Math.round(W * DPR);
-    canvas.height = Math.round(H * DPR);
-    buildField();
-    drawContours();
-    render();
-  }
-
-  function setPointer(e) {
-    const rect = canvas.getBoundingClientRect();
-    pointer = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    render();
-  }
-
-  canvas.addEventListener("pointermove", setPointer);
-  canvas.addEventListener("pointerdown", (e) => {
-    if (e.pointerType === "mouse") {
-      seed = (seed * 9301 + 49297) % 233280;
-      buildField();
-      drawContours();
-    }
-    setPointer(e);
-  });
-  canvas.addEventListener("pointerleave", () => {
-    pointer = null;
-    status.textContent = "Browser sketch, not the plug-in";
-    render();
-  });
-
-  $("#regenTerrain").addEventListener("click", () => {
-    seed = (seed * 9301 + 49297) % 233280;
-    buildField();
-    drawContours();
-    render();
-  });
-
-  $$("#terrain [data-interval]").forEach((b) => b.addEventListener("click", () => {
-    interval = Number(b.dataset.interval);
-    $$("#terrain [data-interval]").forEach((x) => x.classList.toggle("is-active", x === b));
-    drawContours();
-    render();
-  }));
-
-  let resizeTimer;
-  new ResizeObserver(() => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(resize, 120);
-  }).observe(canvas);
-
-  resize();
+  window.addEventListener("resize", scheduleLayout);
+  new ResizeObserver(scheduleLayout).observe(introBox);
+  narrow.addEventListener("change", layoutDiagram);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(layoutDiagram);
+  diagram.complete ? layoutDiagram() : diagram.addEventListener("load", layoutDiagram);
 })();
