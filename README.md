@@ -94,4 +94,4 @@ Before using public open government data, check the [swisstopo terms of use](htt
 
 ## License
 
-Plug-in and website code: [MIT](LICENSE). Figures in `assets/figures/`: Häusler et al. (2026), CC BY-ND 4.0.
+Plug-in and website code: [MIT](LICENSE). Figures in `assets/figures/`: Häusler et al. (2026), CC BY-ND 4.0, credits per figure in [`assets/figures/README.md`](assets/figures/README.md).

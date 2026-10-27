@@ -151,37 +151,51 @@ window.MURMELI = {
   ],
 
   /*
-    Figures from the paper (CC BY-ND 4.0). Put the image files in
-    ./assets/figures/ with exactly these names. JPG or PNG both work
-    if you change the extension here.
+    Figures from the paper, reproduced unchanged under CC BY-ND 4.0.
+    Häusler, Vollmer, Voser, Fricker (2026), JoDLA 11, 403–410.
+    "caption" follows the paper's figure caption, "credit" its image credit.
   */
   figures: {
-    "fig-1":   { file: "fig-1-method-diagram.jpg",
-                 caption: "Fig. 1: Method diagram, the digital-physical-digital workflow." },
-    "fig-2":   { file: "fig-2-toolbar.jpg",
-                 caption: "Fig. 2: The Murmeli toolbar in Grasshopper." },
-    "fig-3-1": { file: "fig-3-1-inner-city-1-500.jpg",
-                 caption: "Fig. 3, left: Inner city model 1:500, by N. Lorethan." },
-    "fig-3-2": { file: "fig-3-2-concept-models-1-25000.jpg",
-                 caption: "Fig. 3, middle: Concept models 1:25'000, collective student works." },
-    "fig-3-3": { file: "fig-3-3-flow-channels-1-200.jpg",
-                 caption: "Fig. 3, right: Flow channels 1:200, by T.-W. Chen & Y. Hou." },
-    "fig-4-1": { file: "fig-4-1-mixed-models.jpg",
-                 caption: "Fig. 4, left: Rescanned physical model juxtaposed with the LiDAR model, 1:25'000, Design Studio 2025." },
-    "fig-4-2": { file: "fig-4-2-slope-analysis.jpg",
-                 caption: "Fig. 4, middle: Slope steepness analysis on a rescanned model, 1:1'000, by A. Lang & L. Lepori." },
-    "fig-4-3": { file: "fig-4-3-deviation-analysis.jpg",
-                 caption: "Fig. 4, right: Deviation after a full cycle, standard deviation ±0.1654 mm at 1:3'000." },
-    "fig-5-1": { file: "fig-5-1-students-working.jpg",
-                 caption: "Fig. 5, left: Students working by hand, spring semester 2025." },
-    "fig-5-2": { file: "fig-5-2-modelling-tools.jpg",
-                 caption: "Fig. 5, middle: Tools for manual modelling." },
-    "fig-5-3": { file: "fig-5-3-tiled-formwork.jpg",
-                 caption: "Fig. 5, right: Several tiles combined into one formwork, pressing a sand model." }
+    "fig-1":   { file: "haeusler-2026-jodla11_fig1_method-diagram.png", dark: true,
+                 caption: "Fig. 1: Method diagram, the digital-physical-digital workflow.",
+                 credit: "Image credits: the authors." },
+    "fig-2":   { file: "haeusler-2026-jodla11_fig2_murmeli-toolbar.png", natural: true,
+                 caption: "Fig. 2: Toolbar of the Rhino Grasshopper plug-in (Murmeli 2025).",
+                 credit: "Image credits: the authors." },
+    "fig-3-1": { file: "haeusler-2026-jodla11_fig3-1_inner-city-model-1-500_lorethan.jpg",
+                 caption: "Fig. 3, left: Inner city model, 1:500.",
+                 credit: "By N. Lorethan." },
+    "fig-3-2": { file: "haeusler-2026-jodla11_fig3-2_concept-models-1-25000_student-works.jpg",
+                 caption: "Fig. 3, middle: Concept models, 1:25'000.",
+                 credit: "Collective student works." },
+    "fig-3-3": { file: "haeusler-2026-jodla11_fig3-3_flow-channels-1-200_chen-hou.jpg",
+                 caption: "Fig. 3, right: Flow channels, 1:200.",
+                 credit: "By T.-W. Chen & Y. Hou." },
+    "fig-4-1": { file: "haeusler-2026-jodla11_fig4-1_mixed-models-rescan-lidar-1-25000.jpg",
+                 caption: "Fig. 4, left: Mixed models, rescanned physical model juxtaposed with the digital LiDAR model, 1:25'000.",
+                 credit: "Design Studio 2025." },
+    "fig-4-2": { file: "haeusler-2026-jodla11_fig4-2_slope-analysis-1-1000_lang-lepori.jpg",
+                 caption: "Fig. 4, middle: Slope steepness analysis on a rescanned physical model, 1:1'000.",
+                 credit: "By A. Lang & L. Lepori." },
+    "fig-4-3": { file: "haeusler-2026-jodla11_fig4-3_deviation-analysis-1-3000.jpg",
+                 caption: "Fig. 4, right: Deviation analysis after the full cycle (geodata, physical model, re-digitisation), standard deviation ±0.1654 mm at 1:3'000.",
+                 credit: "Image credits: the authors." },
+    "fig-5-1": { file: "haeusler-2026-jodla11_fig5-1_students-working-by-hand.jpg",
+                 caption: "Fig. 5, left: Students working by hand, spring semester 2025.",
+                 credit: "Image credits: Silvia Converso and the authors." },
+    "fig-5-2": { file: "haeusler-2026-jodla11_fig5-2_manual-modelling-tools.jpg",
+                 caption: "Fig. 5, middle: Tools for manual modelling.",
+                 credit: "Image credits: Silvia Converso and the authors." },
+    "fig-5-3": { file: "haeusler-2026-jodla11_fig5-3_tiled-formwork-sand-pressing.jpg",
+                 caption: "Fig. 5, right: Several tiles combined into one formwork, pressing a sand model.",
+                 credit: "Image credits: Silvia Converso and the authors." }
   },
 
+  figureSource:
+    "Häusler, D., Vollmer, M., Voser, M., Fricker, P. (2026). Hybrid Terrain Modeling. JoDLA 11, 403–410. doi:10.14627/537770039. CC BY-ND 4.0.",
+
   figureCredit:
-    "Figures from Häusler et al. (2026), CC BY-ND 4.0. Image credits: the authors and Silvia Converso.",
+    "All figures from Häusler et al. (2026), Journal of Digital Landscape Architecture 11, 403–410, CC BY-ND 4.0, reproduced unchanged. Image credits: the authors, Silvia Converso (Fig. 5) and the students named in each caption.",
 
   citation: {
     text:

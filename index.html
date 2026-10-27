@@ -7,7 +7,7 @@
   <meta name="description" content="Murmeli is a free Rhino Grasshopper plug-in that brings Swiss LiDAR geodata into design workflows, from 3D-printed formworks to sand models and back to digital analysis." />
   <meta property="og:title" content="Murmeli – Hybrid Terrain Modelling" />
   <meta property="og:description" content="From swisstopo geodata to 3D-printed formworks, sand models and back. A Grasshopper plug-in from ETH Zürich." />
-  <meta property="og:image" content="./assets/figures/fig-1-method-diagram.jpg" />
+  <meta property="og:image" content="./assets/figures/haeusler-2026-jodla11_fig3-2_concept-models-1-25000_student-works.jpg" />
   <meta name="theme-color" content="#000000" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23000'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23fff'/%3E%3C/svg%3E" />
 
@@ -85,7 +85,7 @@
         </div>
 
         <ol id="contentsList" class="contents-list">
-          <li><a href="#terrain"><span>Terrain</span><small>Live contours</small></a></li>
+          <li><a href="#terrain"><span>Introduction</span><small>What Murmeli is</small></a></li>
           <li><a href="#method"><span>Method</span><small>Fig. 1</small></a></li>
           <li><a href="#plugin"><span>Plug-in</span><small>Fig. 2</small></a></li>
           <li><a href="#geodata"><span>Geodata</span><small>swisstopo</small></a></li>
@@ -117,18 +117,33 @@
         <div class="stage-overlay">
           <div class="viewer-status">
             <span class="status-dot"></span>
-            <span id="stageStatus">Point z —</span>
+            <span id="stageStatus">Browser sketch, not the plug-in</span>
           </div>
           <div class="viewer-help">
-            Move: trace water flow · Click: new terrain
+            Imitates Contour Lines + Water Flow Lines · Move: trace flow · Click: new terrain
           </div>
         </div>
 
-        <div class="stage-caption">
+        <div class="stage-intro">
+          <p class="stage-kicker">Grasshopper plug-in for Rhino 7 and 8</p>
           <p class="stage-lede">
-            Murmeli brings Swiss LiDAR geodata into Grasshopper, prints it as a
-            formwork, lets you press and reshape it in sand, and scans it back
-            for analysis.
+            Murmeli brings Swiss LiDAR geodata into Grasshopper. You print the
+            terrain as a formwork, press and reshape it in sand, and scan it back
+            for analysis. It installs as a toolbar with four tabs:
+          </p>
+          <img class="stage-toolbar"
+               src="./assets/figures/haeusler-2026-jodla11_fig2_murmeli-toolbar.png"
+               alt="The Murmeli toolbar in Grasshopper with the tabs Import, Tools, Analysis and Export"
+               width="869" height="156" />
+          <div class="stage-actions">
+            <a class="button button-primary" data-repo-file="installer" download>Download installer</a>
+            <a class="button" href="#plugin">See all components</a>
+            <a class="button" href="#method">How the method works</a>
+          </div>
+          <p class="stage-note">
+            The map behind this text is not the plug-in. It is a sketch running in
+            your browser that imitates two of Murmeli's analyses, Contour Lines and
+            Water Flow Lines. Move the pointer over it to see where water would run.
           </p>
         </div>
 
@@ -389,8 +404,8 @@
             </p>
           </header>
 
-          <div class="figure-row">
-            <div class="figure-slot" data-figure="fig-4-1"></div>
+          <div class="figure-slot" data-figure="fig-4-1"></div>
+          <div class="figure-row figure-row-2">
             <div class="figure-slot" data-figure="fig-4-2"></div>
             <div class="figure-slot" data-figure="fig-4-3"></div>
           </div>
@@ -580,7 +595,7 @@
         <section>
           <h3>How to use it</h3>
           <ul>
-            <li>The contour map at the top is generated in your browser. Move the pointer over it to read elevations and trace where water would flow, like the Water Flow Lines component. Click to make a new terrain.</li>
+            <li>The contour map at the top is not the plug-in. It is a sketch generated in your browser that imitates two Murmeli analyses: move the pointer to trace where water would flow, click for a new terrain. The plug-in itself runs inside Rhino Grasshopper.</li>
             <li>Step through the method to see what happens at each stage.</li>
             <li>Filter the component library by tab, or search by name.</li>
             <li>Use the scale calculator to judge which scale your model needs.</li>

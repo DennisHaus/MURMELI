@@ -65,24 +65,33 @@
 
   const FIG_DIR = "./assets/figures/";
 
+  const SOURCE_SHORT = "Häusler et al. 2026, JoDLA 11";
+
   $$(".figure-slot").forEach((slot) => {
     const key = slot.dataset.figure;
     const fig = C.figures[key];
     if (!fig) return;
 
     const src = FIG_DIR + fig.file;
+    const alt = `${fig.caption} ${fig.credit || ""}`.trim();
     const img = new Image();
 
     img.onload = () => {
+      const cls = ["figure-button", fig.dark ? "is-dark" : "", fig.natural ? "is-natural" : ""].join(" ");
+      const style = fig.natural ? ` style="max-width:${img.naturalWidth}px"` : "";
       slot.innerHTML = `
         <figure>
-          <button type="button" class="figure-button" aria-label="Enlarge: ${escapeHtml(fig.caption)}">
-            <img src="${src}" alt="${escapeHtml(fig.caption)}" loading="lazy" decoding="async"
+          <button type="button" class="${cls}"${style} aria-label="Enlarge: ${escapeHtml(fig.caption)}">
+            <img src="${src}" alt="${escapeHtml(alt)}" loading="lazy" decoding="async"
                  width="${img.naturalWidth}" height="${img.naturalHeight}" />
           </button>
-          <figcaption>${escapeHtml(fig.caption)}</figcaption>
+          <figcaption>
+            ${escapeHtml(fig.caption)}
+            ${fig.credit ? `<span class="fig-credit">${escapeHtml(fig.credit)}</span>` : ""}
+            <span class="fig-source">Source: <a href="${C.links.doi}" target="_blank" rel="noopener">${SOURCE_SHORT}</a>, CC BY-ND 4.0</span>
+          </figcaption>
         </figure>`;
-      $(".figure-button", slot).addEventListener("click", () => openLightbox(src, fig.caption));
+      $(".figure-button", slot).addEventListener("click", () => openLightbox(src, fig));
     };
 
     img.onerror = () => {
@@ -342,10 +351,13 @@
 
   $("#openReadme").addEventListener("click", () => readme.showModal());
 
-  function openLightbox(src, caption) {
-    $("#lightboxImg").src = src;
-    $("#lightboxImg").alt = caption;
-    $("#lightboxCaption").textContent = caption;
+  function openLightbox(src, fig) {
+    const lbImg = $("#lightboxImg");
+    lbImg.src = src;
+    lbImg.alt = fig.caption;
+    lbImg.classList.toggle("is-dark", !!fig.dark);
+    $("#lightboxCaption").textContent =
+      `${fig.caption} ${fig.credit || ""} Source: ${C.figureSource}`;
     lightbox.showModal();
   }
 
@@ -636,7 +648,7 @@
     const last = path[path.length - 1];
     const zEnd = zAt(last[0], last[1]);
     status.textContent =
-      `Point z ${fmtNum(zStart, 1)} m · flow drop ${fmtNum(zStart - zEnd, 1)} m`;
+      `Sketch · z ${fmtNum(zStart, 1)} m · flow drop ${fmtNum(zStart - zEnd, 1)} m`;
   }
 
   function resize() {
@@ -669,7 +681,7 @@
   });
   canvas.addEventListener("pointerleave", () => {
     pointer = null;
-    status.textContent = "Point z —";
+    status.textContent = "Browser sketch, not the plug-in";
     render();
   });
 
