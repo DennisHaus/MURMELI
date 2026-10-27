@@ -10,7 +10,6 @@
   7  citation
   8  dialogs (Read Me, lightbox)
   9  contents panel + scroll position
-  10 landing: method diagram fitted around the intro box
 */
 
 (() => {
@@ -416,67 +415,4 @@
 
 
 
-  /* 10 LANDING: method diagram above the intro box ---------------------- */
-  /*
-     The diagram fills the width of the stage; the intro box runs along the
-     bottom. The diagram is scaled so its labels stay clear of the box. If
-     the screen is short, the stage grows taller than the window instead of
-     shrinking the drawing until it can't be read.
-  */
-
-  const stage = $("#intro");
-  const diagram = $(".stage-diagram");
-  const introBox = $(".stage-intro");
-  const narrow = window.matchMedia("(max-width: 860px)");
-
-  // drawn area of the image, as fractions (measured from the PNG)
-  const D = { x0: 0.088, x1: 0.958, y0: 0.113, y1: 0.898 };
-  const RATIO = 1280 / 2274;
-  const PAD = 16, TOP = 56, GAP = 18, MAX_W = 1700;
-
-  function layoutDiagram() {
-    if (narrow.matches) {
-      diagram.removeAttribute("style");
-      stage.style.removeProperty("min-height");
-      return;
-    }
-    stage.style.removeProperty("min-height");
-    const W = stage.clientWidth;
-    const viewH = scroller.clientHeight || window.innerHeight;
-    const bh = introBox.getBoundingClientRect().height;
-
-    const drawnW = D.x1 - D.x0;
-    const drawnH = (D.y1 - D.y0) * RATIO;
-
-    const fullW = Math.min((W - 2 * PAD) / drawnW, MAX_W);
-    const fitH = (viewH - TOP - PAD - GAP - bh) / drawnH;
-    // shrink to fit one screen, but never below 80 % of the full width
-    const iw = Math.max(Math.min(fullW, fitH), fullW * 0.8);
-    const ih = iw * RATIO;
-
-    const contentH = drawnH * iw;
-    const stageH = Math.max(viewH, TOP + contentH + GAP + bh + PAD);
-    stage.style.minHeight = `${Math.ceil(stageH)}px`;
-
-    const areaTop = TOP;
-    const areaBottom = stageH - PAD - bh - GAP;
-    const top = areaTop + (areaBottom - areaTop - contentH) / 2 - D.y0 * ih;
-    const left = (W - drawnW * iw) / 2 - D.x0 * iw;
-
-    diagram.style.width = `${iw}px`;
-    diagram.style.left = `${left}px`;
-    diagram.style.top = `${top}px`;
-  }
-
-  let layoutTimer;
-  const scheduleLayout = () => {
-    clearTimeout(layoutTimer);
-    layoutTimer = setTimeout(layoutDiagram, 60);
-  };
-
-  window.addEventListener("resize", scheduleLayout);
-  new ResizeObserver(scheduleLayout).observe(introBox);
-  narrow.addEventListener("change", layoutDiagram);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(layoutDiagram);
-  diagram.complete ? layoutDiagram() : diagram.addEventListener("load", layoutDiagram);
 })();

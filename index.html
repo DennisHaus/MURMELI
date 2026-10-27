@@ -85,8 +85,8 @@
         </div>
 
         <ol id="contentsList" class="contents-list">
-          <li><a href="#intro"><span>Introduction</span><small>Fig. 1</small></a></li>
-          <li><a href="#method"><span>Method</span><small>7 steps</small></a></li>
+          <li><a href="#intro"><span>Introduction</span><small>What Murmeli is</small></a></li>
+          <li><a href="#method"><span>Method</span><small>Fig. 1</small></a></li>
           <li><a href="#plugin"><span>Plug-in</span><small>Fig. 2</small></a></li>
           <li><a href="#geodata"><span>Geodata</span><small>swisstopo</small></a></li>
           <li><a href="#precision"><span>Precision</span><small>Scale calculator</small></a></li>
@@ -111,52 +111,34 @@
     <main id="scroller" class="main-panel">
 
       <!-- TERRAIN STAGE: 2D contour field, stands in for the 3D viewer -->
-      <section id="intro" class="stage" aria-labelledby="introTitle">
-        <img class="stage-diagram"
-             src="./assets/figures/haeusler-2026-jodla11_fig1_method-diagram.png"
-             alt="Method diagram: geodata enters the Grasshopper plug-in and becomes a digital model, then a 3D printing file, sand or clay imprints, physical manipulation and tactile interaction, and returns through digitisation and re-evaluation."
-             width="2274" height="1280" />
-
-        <div class="stage-overlay">
-          <div class="viewer-status">
-            <span class="status-dot"></span>
-            <span>Fig. 1: Method diagram, digital-physical-digital workflow ·
-              <a class="status-link" data-href="doi" target="_blank" rel="noopener">Häusler et al. 2026, JoDLA 11</a></span>
-          </div>
+      <!-- LANDING: one photo, full screen -->
+      <section id="intro" class="hero hero-photo" aria-labelledby="introTitle">
+        <img class="hero-photo-img" src="./assets/figures/haeusler-2026-jodla11_fig3-2_concept-models-1-25000_student-works.jpg"
+             alt="Nine sand models of the same valley at 1:25'000, each reshaped differently by students." />
+        <div class="hero-photo-shade" aria-hidden="true"></div>
+        <div class="hero-credit viewer-status">
+          <span class="status-dot"></span>
+          <span>Fig. 3: Concept models 1:25'000, collective student works · <a class="status-link" data-href="doi" target="_blank" rel="noopener">Häusler et al. 2026, JoDLA 11</a></span>
         </div>
-
-        <div class="stage-intro">
-          <div class="stage-intro-text">
-            <p class="stage-kicker">Grasshopper plug-in for Rhino 7 and 8</p>
-            <h2 id="introTitle" class="stage-title">From geodata to sand model and back</h2>
-            <p class="stage-lede">
-              Murmeli brings Swiss LiDAR geodata into Grasshopper and turns it into
-              3D-printed formworks for sand and clay models.
-            </p>
-            <p class="stage-text">
-              Shifting water cycles ask landscape designers to work with dynamic
-              topography. Digital methods are precise but keep the designer at a
-              distance; physical ones are intuitive but slow to repeat and hard to
-              measure. Hybrid terrain modelling moves between the two in a closed
-              loop: the digital model is printed as a formwork, pressed in sand,
-              shaped by hand, rescanned and analysed again. A new variant takes five
-              to ten minutes.
-            </p>
-          </div>
-          <div class="stage-intro-tool">
-            <p class="stage-text">It installs as a toolbar with four tabs:</p>
-            <img class="stage-toolbar"
-                 src="./assets/figures/haeusler-2026-jodla11_fig2_murmeli-toolbar.png"
+        <div class="hero-box">
+          <p class="hero-kicker">Grasshopper plug-in for Rhino 7 and 8</p>
+          <h2 id="introTitle" class="hero-title">Murmeli</h2>
+          <p class="hero-lede">
+            From Swiss LiDAR geodata to 3D-printed formworks. Press sand into
+            them, reshape the terrain by hand, scan it back and analyse it.
+            A new variant takes five to ten minutes.
+          </p>
+          <img class="hero-toolbar" src="./assets/figures/haeusler-2026-jodla11_fig2_murmeli-toolbar.png"
                  alt="The Murmeli toolbar in Grasshopper with the tabs Import, Tools, Analysis and Export"
                  width="869" height="156" />
-            <div class="stage-actions">
+          <div class="hero-actions">
               <a class="button button-primary" data-repo-file="installer" download>Download installer</a>
               <a class="button" href="#plugin">See all components</a>
-              <a class="button" href="#method">Step through the method</a>
+              <a class="button" href="#method">How the method works</a>
             </div>
-          </div>
         </div>
       </section>
+
 
 
       <div class="content">
@@ -166,10 +148,15 @@
           <header class="block-head">
             <h2>The method</h2>
             <p class="block-intro">
-              Seven steps, from geodata to a hand-shaped model and back into the
-              computer. Pick a step to see what happens and which components it uses.
+              Shifting water cycles in Switzerland ask landscape designers to work
+              with dynamic topography. Purely digital methods are precise but keep the
+              designer at a distance; purely physical ones are intuitive but slow to
+              repeat and hard to measure. Hybrid terrain modelling moves between the
+              two in a closed loop, with Murmeli bridging the technical gaps.
             </p>
           </header>
+
+          <div class="figure-slot" data-figure="fig-1"></div>
 
           <ol class="cycle" id="cycle">
             <li>
