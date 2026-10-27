@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Murmeli – Grasshopper plug-in for hybrid terrain modelling</title>
+  <meta name="description" content="Murmeli is a free Rhino Grasshopper plug-in that brings Swiss LiDAR geodata into design workflows, from 3D-printed formworks to sand models and back to digital analysis." />
+  <meta property="og:title" content="Murmeli – Hybrid Terrain Modelling" />
+  <meta property="og:description" content="From swisstopo geodata to 3D-printed formworks, sand models and back. A Grasshopper plug-in from ETH Zürich." />
+  <meta property="og:image" content="./assets/figures/fig-1-method-diagram.jpg" />
+  <meta name="theme-color" content="#000000" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23000'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23fff'/%3E%3C/svg%3E" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700;800&display=swap" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+  <div class="app-shell">
+
+    <!-- SIDE PANEL ---------------------------------------------------------- -->
+
+    <aside class="side-panel">
+      <header class="topbar">
+        <div class="brand">
+          <div class="eyebrow">© ETH ZURICH</div>
+
+          <h1 class="brand-title">
+            Murmeli<br>
+            Hybrid<br>
+            Terrain
+          </h1>
+
+          <p class="brand-subtitle">
+            Rhino Grasshopper plug-in | from swisstopo geodata to 3D-printed
+            formworks, sand models and back to digital analysis |
+            <span data-bind="release.stable"></span>,
+            <span data-bind="release.beta"></span>
+            <br><br>
+            Method published in
+            <a class="subtitle-link" data-href="paperReader" target="_blank" rel="noopener">JoDLA 2026</a> |
+            Files on
+            <a class="subtitle-link" data-href="github" target="_blank" rel="noopener">GitHub</a> |
+            See all tools
+            <a class="subtitle-link" data-href="overview" target="_blank" rel="noopener">here</a>
+          </p>
+        </div>
+
+        <div class="topbar-actions">
+          <div class="topbar-row">
+            <a class="button" href="#install"
+               title="Download the installer or single components">Download</a>
+            <a class="button" data-href="paperReader" target="_blank" rel="noopener"
+               title="Read the paper in the research hub">Read Paper</a>
+            <button id="openReadme" class="button" type="button">Read Me</button>
+          </div>
+          <div class="topbar-row">
+            <a class="button" data-href="github" target="_blank" rel="noopener"
+               title="Source files on GitHub">GitHub</a>
+            <a class="button" data-repo-file="documentation" target="_blank" rel="noopener"
+               title="Plug-in documentation (PDF)">Docs</a>
+            <a class="button" data-href="video" target="_blank" rel="noopener"
+               title="Introduction video on YouTube">Video</a>
+            <a class="button" href="#cite" title="Cite the plug-in">Cite</a>
+          </div>
+        </div>
+      </header>
+
+      <nav class="contents-panel" aria-label="Contents">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Contents</div>
+            <div class="panel-subtitle" id="componentCount">0 components</div>
+          </div>
+          <button id="toggleContents" class="icon-button" type="button"
+                  aria-expanded="true" aria-controls="contentsList" title="Open or close contents">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="18 10 12 4 6 10"></polyline>
+              <polyline points="6 14 12 20 18 14"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <ol id="contentsList" class="contents-list">
+          <li><a href="#terrain"><span>Terrain</span><small>Live contours</small></a></li>
+          <li><a href="#method"><span>Method</span><small>Fig. 1</small></a></li>
+          <li><a href="#plugin"><span>Plug-in</span><small>Fig. 2</small></a></li>
+          <li><a href="#geodata"><span>Geodata</span><small>swisstopo</small></a></li>
+          <li><a href="#precision"><span>Precision</span><small>Scale calculator</small></a></li>
+          <li><a href="#studio"><span>In the studio</span><small>Fig. 3, 5</small></a></li>
+          <li><a href="#rescan"><span>Back to digital</span><small>Fig. 4</small></a></li>
+          <li><a href="#limits"><span>Limits</span><small>Discussion</small></a></li>
+          <li><a href="#install"><span>Download &amp; install</span><small>Rhino 7 / 8</small></a></li>
+          <li><a href="#cite"><span>Paper &amp; citation</span><small>JoDLA 11</small></a></li>
+          <li><a href="#credits"><span>Credits</span><small>ETH Zürich</small></a></li>
+        </ol>
+      </nav>
+
+      <footer class="side-footer">
+        Institute for Landscape and Urban Studies,
+        <a data-href="chair" target="_blank" rel="noopener">Professur Voser</a>
+      </footer>
+    </aside>
+
+
+    <!-- MAIN SCROLL AREA ---------------------------------------------------- -->
+
+    <main id="scroller" class="main-panel">
+
+      <!-- TERRAIN STAGE: 2D contour field, stands in for the 3D viewer -->
+      <section id="terrain" class="stage" aria-label="Interactive contour map">
+        <canvas id="terrainCanvas" class="stage-canvas" aria-hidden="true"></canvas>
+
+        <div class="stage-overlay">
+          <div class="viewer-status">
+            <span class="status-dot"></span>
+            <span id="stageStatus">Point z —</span>
+          </div>
+          <div class="viewer-help">
+            Move: trace water flow · Click: new terrain
+          </div>
+        </div>
+
+        <div class="stage-caption">
+          <p class="stage-lede">
+            Murmeli brings Swiss LiDAR geodata into Grasshopper, prints it as a
+            formwork, lets you press and reshape it in sand, and scans it back
+            for analysis.
+          </p>
+        </div>
+
+        <div class="viewer-toolbar" role="group" aria-label="Contour interval">
+          <span class="toolbar-label">Interval</span>
+          <button type="button" class="seg" data-interval="5">5 m</button>
+          <button type="button" class="seg is-active" data-interval="10">10 m</button>
+          <button type="button" class="seg" data-interval="25">25 m</button>
+          <button type="button" id="regenTerrain" class="icon-only" title="New terrain">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+              <path d="M21 3v5h-5" />
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+              <path d="M8 16H3v5" />
+            </svg>
+          </button>
+        </div>
+      </section>
+
+
+      <div class="content">
+
+        <!-- METHOD ------------------------------------------------------- -->
+        <section id="method" class="block">
+          <header class="block-head">
+            <h2>The method</h2>
+            <p class="block-intro">
+              Shifting water cycles in Switzerland ask landscape designers to work
+              with dynamic topography. Purely digital methods are precise but keep the
+              designer at a distance; purely physical ones are intuitive but slow to
+              repeat and hard to measure. Hybrid terrain modelling moves between the
+              two in a closed loop, with Murmeli bridging the technical gaps.
+            </p>
+          </header>
+
+          <div class="figure-slot" data-figure="fig-1"></div>
+
+          <ol class="cycle" id="cycle">
+            <li>
+              <button type="button" class="cycle-step is-active" data-step="0">
+                <span class="cycle-n">1</span><span class="cycle-name">Geodata</span>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="cycle-step" data-step="1">
+                <span class="cycle-n">2</span><span class="cycle-name">Import</span>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="cycle-step" data-step="2">
+                <span class="cycle-n">3</span><span class="cycle-name">Formwork</span>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="cycle-step" data-step="3">
+                <span class="cycle-n">4</span><span class="cycle-name">Cast</span>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="cycle-step" data-step="4">
+                <span class="cycle-n">5</span><span class="cycle-name">Shape</span>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="cycle-step" data-step="5">
+                <span class="cycle-n">6</span><span class="cycle-name">Rescan</span>
+              </button>
+            </li>
+            <li>
+              <button type="button" class="cycle-step" data-step="6">
+                <span class="cycle-n">7</span><span class="cycle-name">Analyse</span>
+              </button>
+            </li>
+          </ol>
+
+          <div class="cycle-detail" id="cycleDetail" aria-live="polite"></div>
+        </section>
+
+
+        <!-- PLUG-IN ------------------------------------------------------ -->
+        <section id="plugin" class="block">
+          <header class="block-head">
+            <h2>The plug-in</h2>
+            <p class="block-intro">
+              Murmeli groups its components into four tabs: Import, Tools, Analysis
+              and Export. It reads raw LiDAR without converting it to rasters or
+              vectors first, and works with existing terrain tools such as
+              Docofossor, Bison and BeingAliveTerrain. Written in Python 2 and 3, it
+              runs in Rhino 7 and Rhino 8.
+            </p>
+          </header>
+
+          <div class="figure-slot" data-figure="fig-2"></div>
+
+          <div class="library">
+            <div class="library-bar">
+              <div class="filter-group" role="tablist" aria-label="Component category">
+                <button type="button" class="seg is-active" data-cat="all">All</button>
+                <button type="button" class="seg" data-cat="import">1 Import</button>
+                <button type="button" class="seg" data-cat="tools">2 Tools</button>
+                <button type="button" class="seg" data-cat="analysis">3 Analysis</button>
+                <button type="button" class="seg" data-cat="export">4 Export</button>
+              </div>
+              <label class="search">
+                <span class="visually-hidden">Search components</span>
+                <input id="componentSearch" type="search" placeholder="Search components" autocomplete="off" />
+              </label>
+            </div>
+
+            <ul id="componentList" class="component-list"></ul>
+            <p id="componentEmpty" class="empty-state hidden">
+              No component matches. Clear the search or pick another tab.
+            </p>
+          </div>
+        </section>
+
+
+        <!-- GEODATA ------------------------------------------------------ -->
+        <section id="geodata" class="block">
+          <header class="block-head">
+            <h2>Geodata as a basis</h2>
+            <p class="block-intro">
+              swisstopo has recorded the country with LiDAR for 25 years. Since 2025,
+              classified high-resolution point clouds cover all of Switzerland, one of
+              the most precise national datasets in Europe. Using it in design
+              software raises three problems, which Murmeli handles inside Grasshopper.
+            </p>
+          </header>
+
+          <ol class="problems">
+            <li><strong>Data structures.</strong> Translating between points, vectors, meshes and solids.</li>
+            <li><strong>Coordinates.</strong> Moving the Swiss reference system to a local origin.</li>
+            <li><strong>Volume.</strong> Handling large datasets through sampling and class filters at import.</li>
+          </ol>
+
+          <div class="table-wrap">
+            <table class="data-table" id="datasetTable">
+              <thead>
+                <tr><th>Dataset</th><th>Type</th><th>Format</th><th>Notes</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <p class="note">
+            Before using open government data, check the
+            <a data-href="swisstopoTerms" target="_blank" rel="noopener">swisstopo terms of use</a>.
+          </p>
+        </section>
+
+
+        <!-- PRECISION ---------------------------------------------------- -->
+        <section id="precision" class="block">
+          <header class="block-head">
+            <h2>Precision by scale</h2>
+            <p class="block-intro">
+              PLA printers lay down layers of about 0.2 mm, and pressed sand keeps
+              that detail. What 0.2 mm means on site depends on the model scale. Pick
+              a scale to see what the model can show.
+            </p>
+          </header>
+
+          <div class="calc">
+            <div class="calc-input">
+              <label for="scaleInput" class="field-label">Model scale</label>
+              <div class="scale-row">
+                <span class="scale-prefix">1 :</span>
+                <input id="scaleInput" type="number" min="50" max="100000" step="50" value="1000" inputmode="numeric" />
+              </div>
+              <div class="filter-group scale-presets" aria-label="Scale presets">
+                <button type="button" class="seg" data-scale="200">200</button>
+                <button type="button" class="seg" data-scale="500">500</button>
+                <button type="button" class="seg is-active" data-scale="1000">1'000</button>
+                <button type="button" class="seg" data-scale="3000">3'000</button>
+                <button type="button" class="seg" data-scale="25000">25'000</button>
+              </div>
+            </div>
+
+            <dl class="calc-out">
+              <div>
+                <dt>Smallest detail on site</dt>
+                <dd id="outDetail">—</dd>
+                <small>0.2 mm print layer × scale</small>
+              </div>
+              <div>
+                <dt>Full-cycle error on site</dt>
+                <dd id="outError">—</dd>
+                <small>±0.1654 mm measured after print, cast and rescan</small>
+              </div>
+              <div>
+                <dt>One 25 × 25 cm tile covers</dt>
+                <dd id="outTile">—</dd>
+                <small>a common printer bed</small>
+              </div>
+              <div>
+                <dt>Against the source data</dt>
+                <dd id="outVerdict">—</dd>
+                <small>swissSURFACE3D vertical accuracy ±10 cm</small>
+              </div>
+            </dl>
+          </div>
+
+          <p class="note">
+            In the paper, a 1:3'000 model carried through the full loop deviated by
+            ±0.1654 mm, which is ±0.50 m on site. At 1:1'000 and larger, the error
+            falls to ±0.2 m or less, close to the precision of the geodata itself.
+          </p>
+        </section>
+
+
+        <!-- STUDIO ------------------------------------------------------- -->
+        <section id="studio" class="block">
+          <header class="block-head">
+            <h2>In the studio</h2>
+            <p class="block-intro">
+              Formworks are printed in PLA, then pressed full of kinetic sand, clay or
+              plaster. A new cast from an existing formwork takes five to ten minutes,
+              so students can work in variants: different time scales, erosion
+              processes, wet and dry years. The method ran in a graduate landscape
+              architecture studio (spring 2025) and an undergraduate architecture
+              studio (fall 2025) at ETH Zürich, where more than 300 students met
+              topography and hydrology this way.
+            </p>
+          </header>
+
+          <div class="figure-row">
+            <div class="figure-slot" data-figure="fig-3-1"></div>
+            <div class="figure-slot" data-figure="fig-3-2"></div>
+            <div class="figure-slot" data-figure="fig-3-3"></div>
+          </div>
+
+          <p class="prose">
+            Work starts with large conceptual models, where even unscaled ideas can
+            be sketched by hand. It then narrows to smaller scales and precise
+            interventions, shaping the sand manually and deforming the terrain
+            digitally before the next print.
+          </p>
+
+          <div class="figure-row">
+            <div class="figure-slot" data-figure="fig-5-1"></div>
+            <div class="figure-slot" data-figure="fig-5-2"></div>
+            <div class="figure-slot" data-figure="fig-5-3"></div>
+          </div>
+        </section>
+
+
+        <!-- RESCAN ------------------------------------------------------- -->
+        <section id="rescan" class="block">
+          <header class="block-head">
+            <h2>Back to digital</h2>
+            <p class="block-intro">
+              To close the loop, shaped models are scanned and laid over the original
+              terrain. Hand-held laser scanners (GOM, Artec Leo) and photogrammetry
+              worked best; depth cameras lacked precision. The rescans then go
+              through the same digital analyses as the geodata: slope, runoff and
+              earthwork volumes.
+            </p>
+          </header>
+
+          <div class="figure-row">
+            <div class="figure-slot" data-figure="fig-4-1"></div>
+            <div class="figure-slot" data-figure="fig-4-2"></div>
+            <div class="figure-slot" data-figure="fig-4-3"></div>
+          </div>
+        </section>
+
+
+        <!-- LIMITS ------------------------------------------------------- -->
+        <section id="limits" class="block">
+          <header class="block-head">
+            <h2>Limits</h2>
+            <p class="block-intro">
+              The method sits between tangible sand tables, which are fast but
+              coarse, and CNC milling, which is precise but slow. That balance has
+              costs worth planning for.
+            </p>
+          </header>
+
+          <div class="limits">
+            <div>
+              <h3>Print size</h3>
+              <p>The printer bed limits the model. Larger sites are split into tiles and combined into one formwork.</p>
+            </div>
+            <div>
+              <h3>Print time</h3>
+              <p>A first print can take 10 hours or more for 25 × 25 cm. The method pays off when one formwork serves many variants or a whole group.</p>
+            </div>
+            <div>
+              <h3>Hand precision</h3>
+              <p>Manual shaping has its own resolution. At large scales it suits concepts and exaggerated features rather than detail.</p>
+            </div>
+            <div>
+              <h3>Materials</h3>
+              <p>The studios used kinetic sand, clay and plaster. Site-specific material mixtures are a possible next step.</p>
+            </div>
+          </div>
+
+          <blockquote class="pull">
+            Topography had more impact on the design when it was physically present
+            in the room. Moving between the digital and the analogue gave students a
+            more multifaceted understanding than either alone.
+          </blockquote>
+        </section>
+
+
+        <!-- DOWNLOAD & INSTALL -------------------------------------------- -->
+        <section id="install" class="block">
+          <header class="block-head">
+            <h2>Download &amp; install</h2>
+            <p class="block-intro">
+              All files come straight from the GitHub repository. The installer is
+              the quickest way in. Single components are listed in the library above,
+              each with its own download. Murmeli works with Rhino 7, and with Rhino 8
+              using the IronPython plug-in. Reading .laz files needs Rhino 8 and the
+              lasrz, laszip and laspy packages.
+            </p>
+          </header>
+
+          <div class="downloads">
+            <a class="download-main" data-repo-file="installer" download>
+              <span class="download-kind">Installer</span>
+              <strong id="installerName">Installer</strong>
+              <span class="download-meta">One .ghuser file, installs all components</span>
+            </a>
+            <div class="download-list">
+              <a class="download-item" data-href="zip">
+                <strong>All files</strong><span>ZIP of the repository</span>
+              </a>
+              <a class="download-item" data-repo-file="documentation" target="_blank" rel="noopener">
+                <strong>Documentation</strong><span>PDF, 2 pages</span>
+              </a>
+              <a class="download-item" data-href="componentsFolder" target="_blank" rel="noopener">
+                <strong>ComponentLibraries</strong><span>.ghpy files on GitHub</span>
+              </a>
+              <a class="download-item" data-href="userObjectsFolder" target="_blank" rel="noopener">
+                <strong>UserObjects</strong><span>.ghuser files on GitHub</span>
+              </a>
+              <a class="download-item" data-href="food4rhino" target="_blank" rel="noopener">
+                <strong>Food4Rhino</strong><span>Release page</span>
+              </a>
+            </div>
+          </div>
+
+          <div class="install">
+            <div class="install-col">
+              <h3>With the installer</h3>
+              <ol class="steps">
+                <li>Download the installer file.</li>
+                <li>Drag and drop it into Grasshopper.</li>
+                <li>Set “Installation” and “Overwrite” to True.</li>
+                <li>Restart Rhino.</li>
+              </ol>
+            </div>
+            <div class="install-col">
+              <h3>By hand</h3>
+              <ol class="steps">
+                <li>Download all files as ZIP and unpack it.</li>
+                <li>In Grasshopper, open File › Special Folders › Components Folder and copy the .ghpy files from ComponentLibraries there.</li>
+                <li>Open File › Special Folders › User Object Folder and copy the .ghuser files from UserObjects there.</li>
+                <li>Restart Rhino.</li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="facts" id="releaseFacts"></div>
+        </section>
+
+
+        <!-- CITE --------------------------------------------------------- -->
+        <section id="cite" class="block">
+          <header class="block-head">
+            <h2>Paper &amp; citation</h2>
+            <p class="block-intro">
+              The method and plug-in are described in “Hybrid Terrain Modeling: A
+              Multidimensional Landscape Design Method”, Journal of Digital Landscape
+              Architecture 11, 2026, pages 403–410. Open access.
+            </p>
+          </header>
+
+          <div class="paper-card">
+            <div class="paper-meta">
+              <p class="paper-title">Hybrid Terrain Modeling: A Multidimensional Landscape Design Method</p>
+              <p class="paper-authors">Dennis Häusler, Matthias Vollmer, Martina Voser, Pia Fricker</p>
+              <p class="paper-venue">JoDLA 11-2026 · Wichmann Verlag · doi:10.14627/537770039</p>
+            </div>
+            <div class="paper-actions">
+              <a class="button" data-href="paperReader" target="_blank" rel="noopener">Read in the hub</a>
+              <a class="button" data-href="doi" target="_blank" rel="noopener">Open DOI</a>
+            </div>
+          </div>
+
+          <div class="cite-box">
+            <div class="cite-tabs filter-group" role="tablist" aria-label="Citation format">
+              <button type="button" class="seg is-active" data-format="text">Text</button>
+              <button type="button" class="seg" data-format="bibtex">BibTeX</button>
+              <button type="button" id="copyCite" class="seg seg-action">Copy</button>
+            </div>
+            <pre id="citeOutput" class="cite-output"></pre>
+          </div>
+        </section>
+
+
+        <!-- CREDITS ------------------------------------------------------ -->
+        <section id="credits" class="block block-last">
+          <header class="block-head">
+            <h2>Credits</h2>
+          </header>
+          <p class="prose">
+            Murmeli was developed by Dennis Häusler, Nathan Lorethan and Matthias
+            Vollmer at the Chair of Landscape Architecture of Martina Voser and the
+            LVML, Institute for Landscape and Urban Studies, ETH Zürich. AI
+            assistance was used for Python scripting. Thanks to the teaching team,
+            Coralie Berchtold, Bea Kisler, Nathan Lorethan, Dylan Tori and Martin
+            Zwahlen, and to the students who tested the method in their projects.
+          </p>
+          <p class="prose">
+            The plug-in files and this website live in the same
+            <a data-href="github" target="_blank" rel="noopener">GitHub repository</a>,
+            released under the MIT license.
+          </p>
+          <p class="note" id="figureCredit"></p>
+          <p class="note">
+            Contact: <a data-href="contact">haeusler@arch.ethz.ch</a>
+          </p>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+
+  <!-- READ ME ------------------------------------------------------------- -->
+  <dialog id="readmeDialog" class="description-dialog" aria-labelledby="readmeTitle">
+    <div class="description-dialog-inner">
+      <div class="description-dialog-header">
+        <h2 id="readmeTitle">Read Me</h2>
+        <button type="button" class="description-close" data-close aria-label="Close">×</button>
+      </div>
+      <div class="description-dialog-body">
+        <section>
+          <h3>What this page is</h3>
+          <p>
+            A guide to Murmeli, a free Grasshopper plug-in for working with Swiss
+            geodata in landscape architecture and architecture, and to the hybrid
+            modelling method it was built for.
+          </p>
+        </section>
+        <section>
+          <h3>How to use it</h3>
+          <ul>
+            <li>The contour map at the top is generated in your browser. Move the pointer over it to read elevations and trace where water would flow, like the Water Flow Lines component. Click to make a new terrain.</li>
+            <li>Step through the method to see what happens at each stage.</li>
+            <li>Filter the component library by tab, or search by name.</li>
+            <li>Use the scale calculator to judge which scale your model needs.</li>
+            <li>Click any figure to enlarge it.</li>
+          </ul>
+        </section>
+        <section>
+          <h3>Data</h3>
+          <p>
+            Murmeli reads swisstopo datasets. Check the terms of use before
+            working with public geodata.
+          </p>
+        </section>
+      </div>
+    </div>
+  </dialog>
+
+
+  <!-- LIGHTBOX ------------------------------------------------------------ -->
+  <dialog id="lightbox" class="lightbox" aria-label="Figure">
+    <button type="button" class="lightbox-close" data-close aria-label="Close">×</button>
+    <img id="lightboxImg" alt="" />
+    <p id="lightboxCaption" class="lightbox-caption"></p>
+  </dialog>
+
+  <script src="./content.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
